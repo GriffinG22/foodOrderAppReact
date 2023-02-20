@@ -7,10 +7,18 @@ import classes from './AvailableMeals.module.css';
 
 const AvailableMeals = () => {
   const [meals, setMeals] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [httpError, setHttpError] = useState();
 
   useEffect(() => {
     const fetchMeals = async () => {
+      setIsLoading(true);
       const res = await fetch('https://reacthttp-3d6c8-default-rtdb.firebaseio.com/Meals.json');
+
+      if (!res.ok) {
+        throw new Error('Something wen wrong!');
+      }
+
       const resData = await res.json();
 
       const loadedMeals = [];
@@ -25,10 +33,30 @@ const AvailableMeals = () => {
       }
 
       setMeals(loadedMeals);
+      setIsLoading(false);
     };
 
-    fetchMeals();
+    fetchMeals().catch((error) => {
+      setIsLoading(false);
+      setHttpError(error.message);
+    });
   }, []);
+
+  if (isLoading) {
+    return (
+      <section className={classes.MealsLoading}>
+        <p>Loading...</p>
+      </section>
+    )
+  }
+
+  if (httpError) {
+    return (
+      <section className={classes.MealsError}>
+        <p>{httpError}</p>
+      </section>
+    )
+  }
 
   const mealsList = meals.map(meal => <MealItem id={meal.id} key={meal.id} name={meal.name} descrip={meal.description} price={meal.price}/>);
 
