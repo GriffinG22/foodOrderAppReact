@@ -1,40 +1,88 @@
-import React from 'react'
+import { useRef, useState } from 'react';
 
-import classes from './Checkout.module.css'
+import classes from './Checkout.module.css';
 
+const isEmpty = (val) => val.trim() === '';
+const isFiveChars = (val) => val.length === 5;
+ 
 const Checkout = (props) => {
-    const confirmHandler = (e) => {
-        e.preventDefault();
+  const [formInputsValidity, setFormInputsValidity] = useState({
+    name: true,
+    street: true,
+    postalCode: true,
+    city: true
+  });
 
-        
-    };
+  const nameInputRef = useRef();
+  const streetInputRef = useRef();
+  const postalCodeInputRef = useRef();
+  const cityInputRef = useRef();
 
-    return (
-        <form>
-            <div className={classes.control}>
-                <label htmlFor='name'>Your Name</label>
-                <input type='text' id='name'/>
-            </div>
+  const confirmHandler = (event) => {
+    event.preventDefault();
 
-            <div className={classes.control}>
-                <label htmlFor='street'>Street</label>
-                <input type='text' id='street'/>
-            </div>
+    const enteredName = nameInputRef.current.value;
+    const enteredStreet = streetInputRef.current.value;
+    const enteredPostalCode = postalCodeInputRef.current.value;
+    const enteredCity = cityInputRef.current.value;
 
-            <div className={classes.control}>
-                <label htmlFor='postal'>Zip Code</label>
-                <input type='text' id='postal'/>
-            </div>
 
-            <div className={classes.control}>
-                <label htmlFor='city'>City</label>
-                <input type='text' id='city'/>
-            </div>
+    const enteredNameIsValid = !isEmpty(enteredName);
+    const enteredStreetIsValid = !isEmpty(enteredStreet);
+    const enteredPostalCodeIsValid = isFiveChars(enteredPostalCode);
+    const enteredCityIsValid = !isEmpty(enteredCity);
 
-            <button type="button" onClick={props.onCancel}>Cancel</button>
-            <button onClick={confirmHandler}>Confirm</button>
-        </form>
-    )
-}
+    setFormInputsValidity({
+      name: enteredNameIsValid,
+      street: enteredStreetIsValid,
+      postalCode: enteredPostalCodeIsValid,
+      city: enteredCityIsValid
+    });
 
-export default Checkout
+    const formIsValid = enteredNameIsValid && enteredStreetIsValid && enteredPostalCodeIsValid && enteredCityIsValid;
+
+    if (!formIsValid) {
+      return;
+    }
+
+    //Submit CartInfo
+  };
+
+   const nameControlClasses = `${classes.control} ${formInputsValidity.name ? '' : classes.invalid}`
+   const streetControlClasses = `${classes.control} ${formInputsValidity.street ? '' : classes.invalid}`
+   const postalCodeControlClasses = `${classes.control} ${formInputsValidity.postalCode ? '' : classes.invalid}`
+   const cityControlClasses = `${classes.control} ${formInputsValidity.city ? '' : classes.invalid}`
+
+  return (
+    <form className={classes.form} onSubmit={confirmHandler}>
+      <div className={nameControlClasses}>
+        <label htmlFor='name'>Your Name</label>
+        <input type='text' id='name' ref={nameInputRef}/>
+        {!formInputsValidity.name ? <p>Invalid Input</p> : ''}
+      </div>
+      <div className={streetControlClasses}>
+        <label htmlFor='street'>Street</label>
+        <input type='text' id='street' ref={streetInputRef}/>
+        {!formInputsValidity.street ? <p>Invalid Input</p> : ''}
+      </div>
+      <div className={postalCodeControlClasses}>
+        <label htmlFor='postal'>Postal Code</label>
+        <input type='text' id='postal' ref={postalCodeInputRef}/>
+        {!formInputsValidity.postalCode ? <p>Invalid Input (5 Characters expected)</p> : ''}
+      </div>
+      <div className={cityControlClasses}>
+        <label htmlFor='city'>City</label>
+        <input type='text' id='city' ref={cityInputRef}/>
+        {!formInputsValidity.city ? <p>Invalid Input</p> : ''}
+      </div>
+      <div className={classes.actions}>
+        <button type='button' onClick={props.onCancel}>
+          Cancel
+        </button>
+        <button className={classes.submit}>Confirm</button>
+      </div>
+    </form>
+  );
+};
+
+export default Checkout;
